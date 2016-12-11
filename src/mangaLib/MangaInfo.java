@@ -409,6 +409,7 @@ public class MangaInfo {
 		c.synopsis = this.synopsis;
 		c.title = this.title;
 		c.url = this.url;
+		c.mal_id = this.mal_id;
 		
 		return c;
 	}
