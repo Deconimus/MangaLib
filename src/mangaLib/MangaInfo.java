@@ -30,6 +30,7 @@ public class MangaInfo {
 	
 	// to be saved
 	public String title, author, artist, status, url, synopsis;
+	public String chsubs; //chapter substitution dlsite
 	
 	public List<String> genres;
 	
@@ -53,6 +54,8 @@ public class MangaInfo {
 		url = "";
 		genres = new ArrayList<String>();
 		released = -1;
+		
+		chsubs = null;
 		
 		lastChapter = -1;
 		lastPage = -1;
@@ -109,6 +112,7 @@ public class MangaInfo {
 		try { String s = root.element("author").getText().trim(); info.author = s; } catch (Exception e) {}
 		try { String s = root.element("status").getText().trim(); info.status = s; } catch (Exception e) {}
 		try { String s = root.element("url").getText().trim(); info.url = s; } catch (Exception e) {}
+		try { String s = root.element("chapterSubstitutionUrl").getText().trim(); info.chsubs = s.isEmpty() ? null : s; } catch (Exception e) {}
 		try { String s = cleanSynopsis(root.element("synopsis").getText().trim(), false); info.synopsis = s; } catch (Exception e) {}
 		
 		try { int i = Integer.parseInt(root.element("released").getText().trim()); info.released = i; } catch (Exception e) {}
@@ -196,6 +200,7 @@ public class MangaInfo {
 		root.addElement("author").setText(author);
 		root.addElement("status").setText(status);
 		root.addElement("url").setText(url.trim());
+		root.addElement("chapterSubstitutionUrl").setText((chsubs != null) ? chsubs.trim() : "");
 		root.addElement("released").setText(released+"");
 		root.addElement("synopsis").setText(synopsis.trim());
 		

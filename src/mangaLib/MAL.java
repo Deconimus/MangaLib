@@ -14,7 +14,7 @@ import visionCore.util.Web;
 public class MAL {
 
 	
-	public static final String MANGA_SEARCH_URL = "http://myanimelist.net/manga.php?q=";
+	public static final String MANGA_SEARCH_URL = "https://myanimelist.net/search/all?q=";
 	public static final String SPACE_REPLACE = "%20";
 	
 	public static final int STATUS_READING = 1, STATUS_FINISHED = 2, STATUS_ON_HOLD = 3, STATUS_DROPPED = 4, STATUS_PLAN_TO_READ = 6;
@@ -46,7 +46,7 @@ public class MAL {
 		
 		List<MALEntry> list = new ArrayList<MALEntry>();
 		
-		String html = Web.getHTML("http://myanimelist.net/malappinfo.php?u="+user+"&status=all&type=manga", false);
+		String html = Web.getHTML("https://myanimelist.net/malappinfo.php?u="+user+"&status=all&type=manga", false);
 		
 		Document doc = null;
 		try { doc = DocumentHelper.parseText(html); } catch (Exception e) { e.printStackTrace(); return list; }
@@ -104,33 +104,19 @@ public class MAL {
 		String f = "<div id=\"content\">";
 		html = html.substring(html.indexOf(f)+f.length());
 		
-		f = "<div class=\"normal_header";
+		f = "<div class=\"content-left\">";
 		html = html.substring(html.indexOf(f)+f.length());
 		
-		f = "<table";
+		f = "<h2 id=\"manga\">";
 		html = html.substring(html.indexOf(f)+f.length());
 		
-		f = "<tbody>";
+		f = "<article>";
 		html = html.substring(html.indexOf(f)+f.length());
 		
-		// skip the first one since it's not a result
-		f = "</tr>";
-		html = html.substring(html.indexOf(f)+f.length());
-		
-		f = "<tr>";
-		html = html.substring(html.indexOf(f)+f.length());
-		
-		// same shit here
-		f = "</td>";
-		html = html.substring(html.indexOf(f)+f.length());
-
-		f = "<td>";
-		html = html.substring(html.indexOf(f)+f.length());
-		
-		f = "<a class=\"hoverinfo_trigger fw-b\" href=";
+		f = "<a href=";
 		html = html.substring(html.indexOf(f)+f.length()+1);
 		
-		return html.substring(0, html.indexOf(" id=")-1);
+		return html.substring(0, html.indexOf(" class=")-1).trim();
 	}
 	
 	

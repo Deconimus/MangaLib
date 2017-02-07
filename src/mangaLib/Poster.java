@@ -17,6 +17,8 @@ import visionCore.util.Files;
 public class Poster {
 
 	public static final float WIDTH = 256f, HEIGHT = 398f;
+	public static final int MAL_WIDTH = 398, MAL_HEIGHT = 600;
+	
 	public static final int THUMB_WIDTH = 32, THUMB_HEIGHT = 50;
 	
 	//public static final float[] gaussKernel = new float[]{ 0.15247f, 0.22184f, 0.25138f, 0.22184f, 0.15247f };
@@ -47,8 +49,13 @@ public class Poster {
 	
 	
 	public static void saveResized(BufferedImage img, File out) throws Exception {
+		
+		saveResized(img, out, (int)WIDTH, (int)HEIGHT);
+	}
 	
-		BufferedImage imgout = getResizedImage(img, (int)WIDTH, (int)HEIGHT);
+	public static void saveResized(BufferedImage img, File out, int width, int height) throws Exception {
+	
+		BufferedImage imgout = getResizedImage(img, width, height);
 		
 		ImageIO.write(imgout, "jpg", out);
 		
