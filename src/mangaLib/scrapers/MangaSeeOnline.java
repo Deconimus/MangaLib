@@ -1,13 +1,12 @@
 package mangaLib.scrapers;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import mangaLib.MangaInfo;
+import visionCore.dataStructures.tuples.Triplet;
 import visionCore.dataStructures.tuples.Tuple;
-import visionCore.util.Files;
-import visionCore.util.StringUtils;
 import visionCore.util.Web;
 
 public class MangaSeeOnline extends Scraper {
@@ -20,7 +19,220 @@ public class MangaSeeOnline extends Scraper {
 	
 	
 	@Override
-	public List<MangaInfo> search(String query) {
+	public MangaInfo getInfo(String url, String html, MangaInfo info) {
+		
+		if (html == null) { html = Web.getHTML(url, false); }
+		
+		if (info == null) { info = new MangaInfo(); }
+		MangaInfo std = new MangaInfo();
+		
+		if (info.url.equals(std.url)) {
+			
+			info.url = url;
+		}
+		
+		if (info.title.equals(std.title)) {
+			
+			html = cutBehind("<h1 class=\"SeriesName\">", html);
+			
+			info.title = cutTill("</h1>", html).trim();
+		}
+		
+		if (info.author.equals(std.author) || info.artist.equals(std.artist)) {
+			
+			String fq = "/search/?author=";
+			for (int ind = -1, i = 0; (ind = html.indexOf(fq)) > -1; i++) {
+				html = html.substring(ind + fq.length());
+				
+				String s = cutTill("\">", html.replace('\'', '"')).trim();
+				s = s.replace('_', ' ');
+				
+				if (i == 0) {
+					
+					info.artist = s;
+					
+				} else {
+					
+					info.author = s;
+					break;
+				}
+			}
+		}
+		
+		if (info.genres.isEmpty()) {
+			
+			String fq = "/search/?genre=";
+			for (int ind = -1; (ind = html.indexOf(fq)) > -1;) {
+				html = html.substring(ind + fq.length());
+				
+				String s = cutTill("\">", html.replace('\'', '"')).trim().replace('_', ' ');
+				info.genres.add(s);
+			}
+		}
+		
+		if (info.released == std.released) {
+			
+			html = cutBehind("/search/?year=", html);
+			String s = cutTill("\">", html.replace('\'', '"')).trim();
+			
+			try { info.released = (int)Double.parseDouble(s); } catch (Exception | Error e) {}
+		}
+		
+		html = cutBehind("/search/?status=", html);
+		info.status = cutTill("\">", html).trim().toLowerCase();
+		
+		if (info.synopsis.equals(std.synopsis)) {
+			
+			html = cutBehind("<div class=\"description\">", html.replace('\'', '"'));
+			
+			String s = cutTill("</div>", html);
+			
+			info.synopsis = s.trim();
+		}
+		
+		return info;
+	}
+	
+	@Override
+	public List<Triplet<String, Double, String>> getChapters(String html) {
+		
+		List<Triplet<String, Double, String>> chapters = new ArrayList<Triplet<String, Double, String>>();
+		
+		html = cutBehind("<div class=\"list chapter-list\">", html);
+		
+		boolean fixChapterNrs = false;
+		
+		String fq = "<a";
+		for (int ind = -1; (ind = html.indexOf(fq) + fq.length()) > fq.length()-1;) {
+			html = html.substring(ind);
+			
+			String a = cutTill(">", html);
+			html = cutBehind(">", html);
+			
+			String chf = "chapter=\"";
+			int chind = a.toLowerCase().indexOf(chf);
+			if (chind < 0) { continue; }
+			
+			a = a.substring(chind+chf.length());
+			String chnrstr = cutTill("\"", a).trim();
+			
+			double chnr = -1.0;
+			
+			if (!chnrstr.trim().isEmpty()) {
+				
+				try { chnr = Double.parseDouble(chnrstr); } catch (Exception | Error e) { continue; }
+			}
+			
+			a = cutBehind("href=\"", a);
+			
+			String url = cutTill("\"", a).trim();
+			url = cutTill("-page", url) + ".html";
+			url = this.url+url;
+			
+			chapters.add(new Triplet<String, Double, String>(url, chnr, ""));
+			
+			if (!fixChapterNrs && url.toLowerCase().contains("index")) {
+				
+				fixChapterNrs = true;
+			}
+			
+		}
+		
+		if (fixChapterNrs) {
+			
+			List<List<Triplet<String, Double, String>>> indexChapters = new ArrayList<List<Triplet<String, Double, String>>>();
+			
+			for (Triplet<String, Double, String> ch : chapters) {
+				
+				int ind = 0;
+				
+				if (ch.x.contains("index")) {
+				
+					String s = cutTill("-", cutBehind("index-", ch.x));
+					try { ind = (int)Double.parseDouble(s); } catch (Exception | Error e) { continue; }
+					
+					ind -= 1;
+				}
+				
+				while (ind+1 > indexChapters.size()) { indexChapters.add(new ArrayList<Triplet<String, Double, String>>()); }
+				
+				indexChapters.get(ind).add(ch);
+			}
+			
+			chapters.clear();
+			
+			for (int ind = 0, off = 0, ln = indexChapters.size(); ind < ln; ind++, off += indexChapters.get(ind-1).size()) {
+				List<Triplet<String, Double, String>> chlst = indexChapters.get(ind);
+				
+				for (Triplet<String, Double, String> ch : chlst) {
+					
+					ch.y += off;
+					chapters.add(ch);
+				}
+			}
+		}
+		
+		Collections.sort(chapters, (ch0, ch1) -> Double.compare(ch0.y, ch1.y));
+		
+		return chapters;
+	}
+	
+	
+	@Override
+	public List<String> getChapterImgUrls(String url) {
+		
+		List<String> imgUrls = new ArrayList<String>();
+		
+		if (url.contains("-page-")) { url = url.substring(0, url.lastIndexOf("-page-"))+".html"; }
+		
+		String html = Web.getHTML(url, false);
+		if (html == null || html.trim().isEmpty()) { return imgUrls; }
+		
+		String f = "<div class=\"image-container\">";
+		html = html.substring(html.indexOf(f)+f.length());
+		
+		f = "<div style=";
+		html = html.substring(0, html.indexOf(f));
+		
+		f = "<div class=\"fullchapimage";
+		String f1 = "<div class='fullchapimage";
+		
+		for (int indf0 = -1, indf1 = -1; (indf0 = html.indexOf(f)) >= 0 || (indf1 = html.indexOf(f1)) >= 0;) {
+			
+			int ind = (indf0 > -1) ? indf0 : indf1;
+			if (indf0 >= 0 && indf1 >= 0) { ind = Math.min(indf0, indf1); }
+			
+			html = html.substring(ind+f.length());
+			html = html.substring(html.indexOf("<img src=")+10);
+			
+			String imgurl = html.substring(0, html.indexOf(">")-1);
+			
+			imgUrls.add(imgurl);
+		}
+		
+		return imgUrls;
+	}
+	
+	
+	@Override
+	public String getPosterUrl(String html) {
+		
+		html = html.replace('\'', '"');
+		html = cutBehind("<div class=\"well mainWell\">", html);
+		html = cutBehind("<div class=\"row\">", html);
+		html = cutBehind("<div", html);
+		html = cutBehind("<img src=\"", html);
+		html = cutTill("\">", html);
+		
+		html = html.replace(" ", "").replace("\t", "").replace("\n", "");
+		if (html.contains("\"/>")) { html = cutTill("\"/>", html); }
+		
+		return html;
+	}
+	
+	
+	@Override
+	public List<MangaInfo> searchManga(String query) {
 		
 		List<MangaInfo> results = new ArrayList<MangaInfo>();
 		

@@ -64,8 +64,7 @@ public class Poster {
 		n = n.substring(0, n.lastIndexOf("."))+".png";
 		File thumbOut = new File(out.getParentFile().getAbsolutePath()+"/thumbs/"+n);
 		
-		saveThumb(imgout, thumbOut);
-		
+		//saveThumb(imgout, thumbOut);
 	}
 	
 	
@@ -86,7 +85,6 @@ public class Poster {
 		
 		if (!out.getParentFile().exists()) { out.getParentFile().mkdirs(); }
 		ImageIO.write(imgout, "png", out);
-		
 	}
 	
 }

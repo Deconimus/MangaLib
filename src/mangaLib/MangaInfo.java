@@ -26,7 +26,7 @@ public class MangaInfo {
 	// not to be saved
 	public File directory;
 	private Thread saveThread;
-	public boolean read, notdone;
+	public boolean read, notdone, hidden;
 	
 	// to be saved
 	public String title, author, artist, status, url, synopsis;
@@ -70,6 +70,7 @@ public class MangaInfo {
 		
 		read = false;
 		notdone = false;
+		hidden = false;
 		
 		lastReadMillis = 0;
 		recentChapterMillis = 0;
@@ -126,6 +127,8 @@ public class MangaInfo {
 		
 		try { long l = Long.parseLong(root.element("lastReadMillis").getText().trim()); info.lastReadMillis = l; } catch (Exception e) {}
 		try { long l = Long.parseLong(root.element("recentChapterMillis").getText().trim()); info.recentChapterMillis = l; } catch (Exception e) {}
+		
+		try { boolean b = (boolean)StringUtils.parse(false, root.element("hidden").getText().trim()); info.hidden = b; } catch (Exception e) {}
 		
 		Element readchaps = root.element("readChapters");
 		
@@ -222,6 +225,8 @@ public class MangaInfo {
 		
 		root.addElement("lastReadMillis").setText(lastReadMillis+"");
 		root.addElement("recentChapterMillis").setText(recentChapterMillis+"");
+		
+		if (hidden) { root.addElement("hidden").setText("1"); }
 		
 		Element readchaps = root.addElement("readChapters");
 		
@@ -397,7 +402,7 @@ public class MangaInfo {
 		
 		c.artist = this.artist;
 		c.author = this.author;
-		c.directory = new File(this.directory.getAbsolutePath());
+		c.directory = (this.directory == null) ? null : new File(this.directory.getAbsolutePath());
 		c.genres = new ArrayList<String>(); c.genres.addAll(this.genres);
 		c.lastChapter = this.lastChapter;
 		c.lastPage = this.lastPage;
@@ -416,6 +421,7 @@ public class MangaInfo {
 		c.url = this.url;
 		c.mal_id = this.mal_id;
 		c.chsubs = this.chsubs;
+		c.hidden = this.hidden;
 		
 		return c;
 	}

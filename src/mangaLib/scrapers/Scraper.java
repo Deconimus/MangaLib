@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import mangaLib.MangaInfo;
+import visionCore.dataStructures.tuples.Triplet;
+import visionCore.dataStructures.tuples.Tuple;
 import visionCore.reflection.Classes;
 
 public abstract class Scraper {
@@ -25,7 +27,7 @@ public abstract class Scraper {
 				if (obj instanceof Scraper) {
 					
 					Scraper scraper = (Scraper)obj;
-					scrapers.put(scraper.url, scraper);
+					scrapers.put(trimKey(scraper.url), scraper);
 				}
 				
 			} catch (Exception | Error e) {}
@@ -46,7 +48,13 @@ public abstract class Scraper {
 	}
 	
 	
-	public abstract List<MangaInfo> search(String query);
+	public abstract List<MangaInfo> searchManga(String query);
+	
+	public abstract MangaInfo getInfo(String url, String html, MangaInfo info);
+	public abstract List<Triplet<String, Double, String>> getChapters(String html);
+	public abstract List<String> getChapterImgUrls(String url);
+	
+	public abstract String getPosterUrl(String html);
 	
 	
 	public String getSearchURL(String query) {
@@ -60,17 +68,55 @@ public abstract class Scraper {
 	
 	public static Scraper getScraper(String url) {
 		
+		url = trimKey(url);
+		
 		Scraper scraper = scrapers.get(url);
 		
 		if (scraper == null) {
 			
 			for (Scraper scr : scrapers.values()) {
 				
-				if (scr.url.contains(url)) { scraper = scr; break; }
+				String k = trimKey(scr.url);
+				
+				if (url.contains(k) || k.contains(url)) { scraper = scr; break; }
 			}
 		}
 		
 		return scraper;
+	}
+	
+	
+	public static String trimKey(String key) {
+		
+		if (key.startsWith("http://") || key.startsWith("https://")) { key = key.substring(key.indexOf("://")+3); }
+		if (key.startsWith("ww2.") || key.startsWith("www.")) { key = key.substring(key.indexOf(".")+1); }
+		
+		return key;
+	}
+	
+	
+	protected String cutBehind(String f, String html) {
+		
+		int ind = html.indexOf(f);
+		return html.substring((ind < 0) ? 0 : ind + f.length());
+	}
+	
+	protected String cutBehindIC(String f, String html) {
+		
+		int ind = html.toLowerCase().indexOf(f.toLowerCase());
+		return html.substring((ind < 0) ? 0 : ind + f.length());
+	}
+	
+	protected String cutTill(String f, String html) {
+		
+		int ind = html.indexOf(f);
+		return html.substring(0, (ind < 0) ? html.length() : ind);
+	}
+	
+	protected String cutTillIC(String f, String html) {
+		
+		int ind = html.toLowerCase().indexOf(f.toLowerCase());
+		return html.substring(0, (ind < 0) ? html.length() : ind);
 	}
 	
 }
