@@ -34,7 +34,7 @@ public class MangaInfo {
 	
 	public List<String> genres;
 	
-	public int released, lastPage, lockedWidth, poprank, mal_id;
+	public int released, lastPage, lockedWidth, poprank, mal_id, bundled;
 	public double lastChapter;
 	
 	public long lastReadMillis, recentChapterMillis;
@@ -74,6 +74,8 @@ public class MangaInfo {
 		
 		lastReadMillis = 0;
 		recentChapterMillis = 0;
+		
+		bundled = -1;
 		
 	}
 	
@@ -129,6 +131,8 @@ public class MangaInfo {
 		try { long l = Long.parseLong(root.element("recentChapterMillis").getText().trim()); info.recentChapterMillis = l; } catch (Exception e) {}
 		
 		try { boolean b = (boolean)StringUtils.parse(false, root.element("hidden").getText().trim()); info.hidden = b; } catch (Exception e) {}
+		
+		try { int i = Integer.parseInt(root.element("bundled").getText().trim()); info.bundled = i; } catch (Exception e) {}
 		
 		Element readchaps = root.element("readChapters");
 		
@@ -227,6 +231,7 @@ public class MangaInfo {
 		root.addElement("recentChapterMillis").setText(recentChapterMillis+"");
 		
 		if (hidden) { root.addElement("hidden").setText("1"); }
+		if (bundled > 1) { root.addElement("bundled").setText(bundled+""); }
 		
 		Element readchaps = root.addElement("readChapters");
 		
@@ -422,6 +427,7 @@ public class MangaInfo {
 		c.mal_id = this.mal_id;
 		c.chsubs = this.chsubs;
 		c.hidden = this.hidden;
+		c.bundled = this.bundled;
 		
 		return c;
 	}

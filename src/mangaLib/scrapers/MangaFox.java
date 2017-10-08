@@ -268,11 +268,14 @@ public class MangaFox extends Scraper {
 	@Override
 	public List<String> getChapterImgUrls(String url) {
 		
+		if (url.startsWith("//")) { url = url.substring(2); }
+		if (!url.startsWith("https://") && !url.startsWith("http://")) { url = "http://"+url; }
+		
 		List<String> imgUrls = new ArrayList<String>(20);
 		
 		String html = Web.getDecodedHTML(url, false);
 		
-		for (int t = 0; t < 100 && html == null || html.trim().length() <= 5; t++) {
+		for (int t = 0; t < 100 && (html == null || html.trim().length() <= 5); t++) {
 			
 			html = Web.getDecodedHTML(url, false);
 			try { Thread.sleep(50); } catch (Exception | Error e3) { }
