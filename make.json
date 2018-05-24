@@ -1,0 +1,10 @@
+{
+	"target": "jar",
+	"jarName": "mangalib.jar",
+	"outdir": "release",
+	"imports": [
+		"../VisionCore",
+		"lib/*.jar"
+	],
+	"packFiles": ["README.md", "LICENSE"]
+}

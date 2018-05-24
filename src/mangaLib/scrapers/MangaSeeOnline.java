@@ -188,11 +188,10 @@ public class MangaSeeOnline extends Scraper {
 		String html = Web.getHTML(url, false);
 		if (html == null || html.trim().isEmpty()) { return imgUrls; }
 		
-		String f = "<div class=\"image-container\">";
+		String f = "<div class=\"image-container-manga\">";
 		html = html.substring(html.indexOf(f)+f.length());
 		
-		f = "<div style=";
-		html = html.substring(0, html.indexOf(f));
+		html = cutTill("<div style=", html);
 		
 		f = "<div class=\"fullchapimage";
 		String f1 = "<div class='fullchapimage";

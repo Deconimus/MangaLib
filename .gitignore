@@ -1,1 +1,4 @@
 *.class
+mangalib.jar
+.jarMakeCache/
+release/

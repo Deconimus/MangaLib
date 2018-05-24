@@ -60,6 +60,8 @@ public class MangaFox extends Scraper {
 			info.title = entryTitle;
 			info.url = entryUrl;
 			
+			if (info.url.startsWith("//")) { info.url = "http:"+info.url; }
+			
 			results.add(info);
 		}
 		
@@ -242,7 +244,6 @@ public class MangaFox extends Scraper {
 				chapterTitle = chapterTitle.replaceAll("[^ -~]", "");
 				
 				while (chapterTitle.endsWith(".")) { chapterTitle = chapterTitle.substring(0, chapterTitle.length()-1); }
-				
 			}
 			
 			if (chapterNr > 0) { // not saving pilots
@@ -252,7 +253,6 @@ public class MangaFox extends Scraper {
 					chapters.add(new Triplet<String, Double, String>(chapterUrl, chapterNr, chapterTitle));
 					
 				} else { System.out.println("Invalid chapter nr \""+parsenr+"\""); }
-				
 			}
 			
 			f = h3 ? "</h3>" : "</h4>";
@@ -406,16 +406,16 @@ public class MangaFox extends Scraper {
 	private static String getStatus(String html) {
 		
 		String f = "<div id=\"series_info\">";
-		html = html.substring(html.indexOf(f)+f.length());
+		html = html.substring(html.toLowerCase().indexOf(f)+f.length());
 		
 		f = "<div class=\"data\">";
-		html = html.substring(html.indexOf(f)+f.length());
+		html = html.substring(html.toLowerCase().indexOf(f)+f.length());
 		
 		f = "<h5>status:</h5>";
 		html = html.substring(html.toLowerCase().indexOf(f)+f.length());
 		
 		f = "<span>";
-		html = html.substring(html.indexOf(f)+f.length());
+		html = html.substring(html.toLowerCase().indexOf(f)+f.length());
 		
 		String status = html.substring(0, html.indexOf("</span>")).trim();
 		if (status.contains(" ")) { status = status.substring(0, status.indexOf(" ")); }
@@ -484,7 +484,7 @@ public class MangaFox extends Scraper {
 		
 	}
 	
-	private static String srchurl() {
+	protected static String srchurl() {
 		
 		return "http://mangafox.me/search.php?name_method=cw&name="+nameReplace
 				+"&type=&author_method=cw&author=&artist_method=cw&artist="
