@@ -76,7 +76,6 @@ public class MangaInfo {
 		recentChapterMillis = 0;
 		
 		bundled = -1;
-		
 	}
 	
 	public static MangaInfo load(File f) {
