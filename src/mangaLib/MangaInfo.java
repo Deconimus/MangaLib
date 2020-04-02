@@ -350,8 +350,12 @@ public class MangaInfo {
 		title = title.replace("|", "-");
 		title = title.replace(":", " -");
 		title = title.replaceAll("[^ -~]", "");
+		title = title.trim();
 		
-		return title;
+		while (title.endsWith("."))
+			title = title.substring(0, title.length()-1);
+		
+		return title.trim();
 	}
 	
 	public static String cleanSynopsis(String synopsis) {

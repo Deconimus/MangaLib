@@ -109,19 +109,49 @@ public class MangaSeeOnline extends Scraper {
 			String a = cutTill(">", html);
 			html = cutBehind(">", html);
 			
-			String chf = "chapter=\"";
-			int chind = a.toLowerCase().indexOf(chf);
+			String chf = "<span";
+			int chind = html.toLowerCase().indexOf(chf);
 			if (chind < 0) { continue; }
 			
-			a = a.substring(chind+chf.length());
-			String chnrstr = cutTill("\"", a).trim();
+			String span = html.substring(chind+chf.length());
+			span = cutBehind(">", span);
+			String chnrstr = cutTill("</", span).toLowerCase().trim();
 			
 			double chnr = -1.0;
 			
-			if (!chnrstr.trim().isEmpty()) {
+			if (chnrstr.startsWith("chapter")) {
 				
-				try { chnr = Double.parseDouble(chnrstr); } catch (Exception | Error e) { continue; }
+				chnrstr = cutBehind("chapter", chnrstr).trim();
+				
+				try { chnr = Double.parseDouble(chnrstr); } catch (Exception | Error e) { }
+				
+			} else if (chnrstr.startsWith("s") && Character.isDigit(chnrstr.charAt(1))) {
+				
+				chnrstr = cutBehind("s", chnrstr).trim();
+				String seasonNrStr = cutTill("-", chnrstr).trim();
+				chnrstr = cutBehind("chapter", chnrstr).trim();
+				
+				double chapNr = -1, seasonNr = -1;
+				try { seasonNr = Double.parseDouble(seasonNrStr); } catch (Exception | Error e) { }
+				try { chapNr = Double.parseDouble(chnrstr); } catch (Exception | Error e) { }
+				
+				if (chapNr >= 0 && seasonNr >= 0) { chnr = seasonNr + (chapNr * 0.001); }
 			}
+			
+			if (chnr < 0.0) {
+				
+				chf = "chapter=\"";
+				chind = a.toLowerCase().indexOf(chf);
+				if (chind < 0) { continue; }
+				
+				a = a.substring(chind+chf.length());
+				chnrstr = cutTill("\"", a).trim();
+				
+				if (!chnrstr.trim().isEmpty())
+					try { chnr = Double.parseDouble(chnrstr); } catch (Exception | Error e) { continue; }
+			}
+			
+			if (chnr < 0.0) { continue; }
 			
 			a = cutBehind("href=\"", a);
 			
@@ -135,9 +165,9 @@ public class MangaSeeOnline extends Scraper {
 				
 				fixChapterNrs = true;
 			}
-			
 		}
 		
+		/* deprecated
 		if (fixChapterNrs) {
 			
 			List<List<Triplet<String, Double, String>>> indexChapters = new ArrayList<List<Triplet<String, Double, String>>>();
@@ -171,6 +201,7 @@ public class MangaSeeOnline extends Scraper {
 				}
 			}
 		}
+		*/
 		
 		Collections.sort(chapters, (ch0, ch1) -> Double.compare(ch0.y, ch1.y));
 		
